@@ -37,8 +37,3 @@ def translate_auto(phrase):
         ],
     )
     return response.choices[0].message.content.strip()
-
-# Tradução automática
-translated = translate_auto(input_phrase)
-print("\n🗨️ Tradução:")
-print(translated)
