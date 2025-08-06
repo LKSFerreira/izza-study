@@ -22,7 +22,6 @@ intents.members = True
 intents.presences = True
 
 # --- Configuração de Logging Colorido ---
-
 class ColoredFormatter(logging.Formatter):
     """Formatter que adiciona cores e alinhamento ao nível do log."""
 
@@ -46,7 +45,7 @@ class ColoredFormatter(logging.Formatter):
 
     def format(self, record):
         original_levelname = record.levelname
-        
+
         # Verifica se o log é do discord e aplica a cor rosa
         if 'discord' in record.name:
             color = self.PINK
@@ -59,30 +58,30 @@ class ColoredFormatter(logging.Formatter):
             record.levelname = f"{color}{padded_levelname}{self.RESET}"
         else:
             record.levelname = padded_levelname
-            
+
         result = super().format(record)
-        
+
         record.levelname = original_levelname
-        
+
         return result
 
-# Configura o logger raiz
-logger = logging.getLogger()
+
+# Configura o logger principal com nome 'izza-study'
+logger = logging.getLogger("izza-study")
 logger.setLevel(logging.INFO)
 
 # Handler para o arquivo (sem cores)
-file_handler = logging.FileHandler("izza_bot.log", encoding='utf-8')
-file_handler.setFormatter(logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
+file_handler = logging.FileHandler("izza_study.log", encoding='utf-8')
+file_handler.setFormatter(logging.Formatter(
+    '[%(asctime)s] %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
 
 # Handler para o console (com cores)
 console_handler = logging.StreamHandler(sys.stdout)
-# O formato agora inclui o nome do logger (e.g., 'discord.client') e o alinha.
-# O ':' foi removido de depois do levelname para um visual mais limpo.
-console_handler.setFormatter(ColoredFormatter('[%(asctime)s] %(levelname)s %(name)-20s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
+console_handler.setFormatter(ColoredFormatter(
+    '[%(asctime)s] %(levelname)s %(name)-20s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
 
 logger.addHandler(file_handler)
 logger.addHandler(console_handler)
-
 
 class IzzaBot(discord.Client):
     def __init__(self, *, intents: discord.Intents):
@@ -94,18 +93,22 @@ class IzzaBot(discord.Client):
 
         if DEVELOPMENT_MODE:
             if not GUILD_ID:
-                raise ValueError("GUILD_ID não foi definido no arquivo .env. Ele é necessário para o modo de desenvolvimento.")
+                raise ValueError(
+                    "❌ GUILD_ID não foi definido no arquivo .env. Ele é necessário para o modo de desenvolvimento.")
             guild = discord.Object(id=GUILD_ID)
             await self.tree.sync(guild=guild)
-            logging.info(f"✅ [MODO DEV] Comandos sincronizados para a guilda de desenvolvimento: {GUILD_ID}.")
+            logger.info(
+                f"✅ [MODO DEV] Comandos sincronizados para a guilda de desenvolvimento: {GUILD_ID}.")
         else:
             await self.tree.sync()
-            logging.info("🌐 [MODO PROD] Comandos sincronizados globalmente (pode levar até 1h).")
+            logger.info(
+                "🌐 [MODO PROD] Comandos sincronizados globalmente (pode levar até 1h).")
 
     async def on_ready(self):
-        logging.info(f'{self.user.name} conectado com sucesso! ID: {self.user.id}')
-        logging.info('------')
+        logger.info(
+            f'✅ {self.user.name} conectado com sucesso! ID: {self.user.id}')
         await self.change_presence(activity=discord.Game(name="/ajuda"))
+
 
 bot = IzzaBot(intents=intents)
 # Passamos log_handler=None para desativar a configuração de log padrão do discord.py,
