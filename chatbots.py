@@ -1,24 +1,15 @@
 import logging
-import dotenv
-import openai
 import os
+from poe_client_sdk import get_bot_response as get_response_sdk
+from poe_client_openai import get_bot_response as get_response_openai
 
-dotenv.load_dotenv()
 logger = logging.getLogger("izza-study")
 
-api_key = os.getenv("POE_API_KEY")
-base_url = os.getenv("POE_BASE_URL", "https://api.poe.com/v1")
-
-if not api_key:
-    raise ValueError("Defina POE_API_KEY no .env")
-
-client = openai.OpenAI(api_key=api_key, base_url=base_url)
-
 # Modelo padrão
-model_name = "GPT-4o-mini"
+MODEL_NAME = "Izza-Study"
 
 # Prompt do sistema que define o comportamento do tradutor
-system_prompt = (
+SYSTEM_PROMPT = (
     "Você é um tradutor profissional especializado em terminologia de jogos, especialmente MMORPGs. "
     "Sua tarefa é detectar o idioma de uma frase de entrada (inglês dos EUA ou português do Brasil) e traduzi-la para o outro idioma. "
     "Traduza de PT-BR para EN-US e de EN-US para PT-BR. "
@@ -27,18 +18,36 @@ system_prompt = (
     "Sua resposta deve conter APENAS a frase traduzida, sem nenhuma explicação, comentário ou formatação adicional."
 )
 
+def traduzir(frase: str) -> str:
+    """
+    Fachada para o serviço de tradução.
 
-def translate_auto(phrase):
-    """Detecta o idioma da frase e a traduz para PT-BR ou EN-US."""
+    Tenta traduzir usando o método primário (SDK) e, em caso de falha,
+    utiliza o método secundário (OpenAI) como fallback.
+    """
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user",   "content": frase},
+    ]
+
     try:
-        response = client.chat.completions.create(
-            model=model_name,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user",   "content": phrase},
-            ],
-        )
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        logger.error(f"Erro na API de tradução: {e}")
-        raise
+        logger.info("Tentando tradução via SDK (método primário).")
+        response = get_response_sdk(messages=messages, bot_name=MODEL_NAME)
+        if not response:
+            raise ValueError("Resposta do SDK veio vazia.")
+        logger.info("Tradução via SDK bem-sucedida.")
+        return response
+    except Exception as e_sdk:
+        logger.warning(f"Falha no método primário (SDK): {e_sdk}")
+        logger.info("Acionando método de fallback (OpenAI).")
+        
+        try:
+            response = get_response_openai(messages=messages, bot_name=MODEL_NAME)
+            if not response:
+                raise ValueError("Resposta do OpenAI (fallback) veio vazia.")
+            logger.info("Tradução via fallback (OpenAI) bem-sucedida.")
+            return response
+        except Exception as e_openai:
+            logger.error(f"Falha no método de fallback (OpenAI): {e_openai}")
+            # Se ambos falharem, levanta a exceção original do SDK para análise.
+            raise e_sdk from e_openai
