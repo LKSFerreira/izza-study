@@ -9,7 +9,7 @@ logger = logging.getLogger("izza-study")
 # ─── CONFIGURAÇÕES DE TEMPO (em segundos) ────────────────────────────────────────
 PREVIEW_TIMEOUT = 15  # Tempo total até a pré-visualização expirar
 WARNING_DURATION = 10  # Quantos segundos de aviso queremos no final
-DELETE_DELAY_AFTER_SEND = 3  # Quanto tempo após o envio pelo botão até deletar
+DELETE_DELAY_AFTER_SEND = 2  # Quanto tempo após o envio pelo botão até deletar
 # ────────────────────────────────────────────────────────────────────────────────
 
 
@@ -230,7 +230,7 @@ def setup_comandos(bot: discord.Client):
         _log_command_interaction(interaction)
         await interaction.response.defer(ephemeral=True)
         try:
-            traducao = traduzir(frase)
+            traducao = await traduzir(frase)
             logger.info(f"Translation success for '{interaction.user}': '{frase}' -> '{traducao}'")
 
             embed = discord.Embed(

@@ -18,7 +18,7 @@ SYSTEM_PROMPT = (
     "Sua resposta deve conter APENAS a frase traduzida, sem nenhuma explicação, comentário ou formatação adicional."
 )
 
-def traduzir(frase: str) -> str:
+async def traduzir(frase: str) -> str:
     """
     Fachada para o serviço de tradução.
 
@@ -32,7 +32,7 @@ def traduzir(frase: str) -> str:
 
     try:
         logger.info("Tentando tradução via SDK (método primário).")
-        response = get_response_sdk(messages=messages, bot_name=MODEL_NAME)
+        response = await get_response_sdk(messages=messages, bot_name=MODEL_NAME)
         if not response:
             raise ValueError("Resposta do SDK veio vazia.")
         logger.info("Tradução via SDK bem-sucedida.")
@@ -42,7 +42,7 @@ def traduzir(frase: str) -> str:
         logger.info("Acionando método de fallback (OpenAI).")
         
         try:
-            response = get_response_openai(messages=messages, bot_name=MODEL_NAME)
+            response = await get_response_openai(messages=messages, bot_name=MODEL_NAME)
             if not response:
                 raise ValueError("Resposta do OpenAI (fallback) veio vazia.")
             logger.info("Tradução via fallback (OpenAI) bem-sucedida.")
