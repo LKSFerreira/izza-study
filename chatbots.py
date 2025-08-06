@@ -15,25 +15,23 @@ client = openai.OpenAI(api_key=api_key, base_url=base_url)
 # Modelo padrão
 model_name = "GPT-4o-mini"
 
-# Frase de entrada (pode ser em PT-BR ou EN)
-input_phrase = input("Digite a frase para tradução automática:\n> ")
-
-# Prompt que decide automaticamente o idioma
-auto_detect_prompt = (
-    "Você é um tradutor profissional especializado em MMORPGs. "
-    "Receba uma frase que pode estar em inglês (EUA) ou português brasileiro. "
-    "Detecte o idioma e traduza para o outro idioma (PT-BR → EN ou EN → PT-BR). "
-    "Mantenha termos típicos de jogos (como Warrior, DPS, build, glyphs, etc.) em inglês se forem comuns. "
-    "Responda somente com a frase traduzida, sem explicações ou comentários:\n\n\"{}\""
-)
+# Prompt do sistema que define o comportamento do tradutor
+system_prompt = (
+    "Você é um tradutor profissional especializado em terminologia de jogos, especialmente MMORPGs. "
+    "Sua tarefa é detectar o idioma de uma frase de entrada (inglês dos EUA ou português do Brasil) e traduzi-la para o outro idioma. "
+    "Traduza de PT-BR para EN-US e de EN-US para PT-BR. "
+    "É crucial que você mantenha termos comuns de jogos em inglês (por exemplo: 'Warrior', 'DPS', 'build', 'glyphs', 'healer', 'tank', 'aggro', 'pull') "
+    "mesmo ao traduzir para o português, pois são de uso corrente na comunidade. "
+    "Sua resposta deve conter APENAS a frase traduzida, sem nenhuma explicação, comentário ou formatação adicional."
+ )
 
 def translate_auto(phrase):
-    prompt = auto_detect_prompt.format(phrase)
+    """Detecta o idioma da frase e a traduz para PT-BR ou EN-US."""
     response = client.chat.completions.create(
         model=model_name,
         messages=[
-            {"role": "system", "content": "You are a professional translator."},
-            {"role": "user",   "content": prompt},
+            {"role": "system", "content": system_prompt},
+            {"role": "user",   "content": phrase},
         ],
     )
     return response.choices[0].message.content.strip()
