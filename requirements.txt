@@ -1,3 +1,5 @@
 discord
 dotenv
 requests
+openai
+fastapi-poe
