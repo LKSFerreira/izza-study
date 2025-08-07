@@ -1,3 +1,4 @@
 fastapi-poe
 openai
 python-dotenv
+discord
