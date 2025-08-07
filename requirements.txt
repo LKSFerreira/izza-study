@@ -1,5 +1,3 @@
-discord
-dotenv
-requests
-openai
 fastapi-poe
+openai
+python-dotenv
